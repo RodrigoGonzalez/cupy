@@ -135,10 +135,7 @@ if sys.platform == 'win32':
 
 
 def ensure_module_file(file):
-    if isinstance(file, tuple):
-        return file
-    else:
-        return (file, [])
+    return file if isinstance(file, tuple) else (file, [])
 
 
 def module_extension_name(file):
@@ -171,8 +168,10 @@ def check_readthedocs_environment():
 def check_library(compiler, includes=(), libraries=(),
                   include_dirs=(), library_dirs=()):
 
-    source = ''.join(['#include <%s>\n' % header for header in includes])
-    source += 'int main(int argc, char* argv[]) {return 0;}'
+    source = (
+        ''.join(['#include <%s>\n' % header for header in includes])
+        + 'int main(int argc, char* argv[]) {return 0;}'
+    )
     try:
         # We need to try to build a shared library because distutils
         # uses different option to build an executable and a shared library.
@@ -203,8 +202,11 @@ def make_extensions(options, compiler, use_cython):
     if sys.platform == 'darwin':
         args = settings.setdefault('extra_link_args', [])
         args.append(
-            '-Wl,' + ','.join('-rpath,' + p
-                              for p in settings['library_dirs']))
+            (
+                '-Wl,'
+                + ','.join(f'-rpath,{p}' for p in settings['library_dirs'])
+            )
+        )
         # -rpath is only supported when targetting Mac OS X 10.5 or later
         args.append('-mmacosx-version-min=10.5')
 
@@ -238,17 +240,19 @@ def make_extensions(options, compiler, use_cython):
                                  includes=module['include'],
                                  include_dirs=settings['include_dirs']):
                 utils.print_warning(
-                    'Include files not found: %s' % module['include'],
-                    'Skip installing %s support' % module['name'],
-                    'Check your CFLAGS environment variable')
+                    f"Include files not found: {module['include']}",
+                    f"Skip installing {module['name']} support",
+                    'Check your CFLAGS environment variable',
+                )
                 err = True
             elif not check_library(compiler,
                                    libraries=module['libraries'],
                                    library_dirs=settings['library_dirs']):
                 utils.print_warning(
-                    'Cannot link libraries: %s' % module['libraries'],
-                    'Skip installing %s support' % module['name'],
-                    'Check your LDFLAGS environment variable')
+                    f"Cannot link libraries: {module['libraries']}",
+                    f"Skip installing {module['name']} support",
+                    'Check your LDFLAGS environment variable',
+                )
                 err = True
             elif('check_method' in module and
                  not module['check_method'](compiler, settings)):
@@ -407,11 +411,11 @@ def _nvcc_gencode_options(cuda_version):
     for arch in arch_list:
         if type(arch) is tuple:
             virtual_arch, real_arch = arch
-            options.append('--generate-code=arch={},code={},{}'.format(
-                virtual_arch, real_arch, virtual_arch))
+            options.append(
+                f'--generate-code=arch={virtual_arch},code={real_arch},{virtual_arch}'
+            )
         else:
-            options.append('--generate-code=arch={},code={}'.format(
-                arch, arch))
+            options.append(f'--generate-code=arch={arch},code={arch}')
 
     return options
 
@@ -508,13 +512,12 @@ class custom_build_ext(build_ext.build_ext):
                     try:
                         return func(*args, **kwargs)
                     except errors.DistutilsPlatformError:
-                        if not sys.platform == 'win32':
-                            CCompiler = _UnixCCompiler
-                        else:
-                            CCompiler = _MSVCCompiler
+                        CCompiler = _UnixCCompiler if sys.platform != 'win32' else _MSVCCompiler
                         return CCompiler(
                             None, kwargs['dry_run'], kwargs['force'])
+
                 return _wrap_new_compiler
+
             ccompiler.new_compiler = wrap_new_compiler(ccompiler.new_compiler)
             # Intentionally causes DistutilsPlatformError in
             # ccompiler.new_compiler() function to hook.

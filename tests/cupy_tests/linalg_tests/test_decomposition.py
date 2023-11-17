@@ -90,9 +90,7 @@ class TestSVD(unittest.TestCase):
     @testing.numpy_cupy_allclose(atol=1e-4)
     def check_singular(self, array, xp, dtype):
         a = xp.asarray(array, dtype=dtype)
-        result = xp.linalg.svd(
-            a, full_matrices=self.full_matrices, compute_uv=False)
-        return result
+        return xp.linalg.svd(a, full_matrices=self.full_matrices, compute_uv=False)
 
     def check_rank2(self, array):
         with self.assertRaises(numpy.linalg.LinAlgError):

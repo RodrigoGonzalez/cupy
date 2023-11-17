@@ -171,8 +171,11 @@ class TestArrayCopy(unittest.TestCase):
 
         should_copy = (self.xp is numpy) or self.copy
         # TODO(Kenta Oono): Better determination of copy.
-        is_copied = not ((actual is a) or (actual.base is a) or
-                         (actual.base is a.base and a.base is not None))
+        is_copied = (
+            actual is not a
+            and actual.base is not a
+            and (actual.base is not a.base or a.base is None)
+        )
         self.assertEqual(should_copy, is_copied)
 
 

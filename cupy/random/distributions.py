@@ -41,7 +41,6 @@ def gumbel(loc=0.0, scale=1.0, size=None, dtype=float):
         'y = loc - log(-log(1 - x)) * scale',
         'gumbel_kernel'
     )(rs, loc, scale, rs)
-    return rs
 
 
 def lognormal(mean=0.0, sigma=1.0, size=None, dtype=float):

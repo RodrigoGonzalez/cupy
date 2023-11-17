@@ -34,8 +34,9 @@ def copyto(dst, src, casting='same_kind', where=None):
         can_cast = numpy.can_cast(src_dtype, dst.dtype, casting)
 
     if not can_cast:
-        raise TypeError('Cannot cast %s to %s in %s casting mode' %
-                        (src_dtype, dst.dtype, casting))
+        raise TypeError(
+            f'Cannot cast {src_dtype} to {dst.dtype} in {casting} casting mode'
+        )
     if dst.size == 0:
         return
 

@@ -76,15 +76,12 @@ def inner(a, b):
     if a_ndim == 0 or b_ndim == 0:
         return cupy.multiply(a, b)
 
-    a_axis = a_ndim - 1
-    b_axis = b_ndim - 1
-
     if a.shape[-1] != b.shape[-1]:
         raise ValueError('Axis dimension mismatch')
 
-    if a_axis:
+    if a_axis := a_ndim - 1:
         a = cupy.rollaxis(a, a_axis, 0)
-    if b_axis:
+    if b_axis := b_ndim - 1:
         b = cupy.rollaxis(b, b_axis, 0)
 
     ret_shape = a.shape[1:] + b.shape[1:]
@@ -124,9 +121,8 @@ def outer(a, b, out=None):
         raise ValueError('Output array has an invalid size')
     if out.flags.c_contiguous:
         return core.tensordot_core(a, b, out, n, m, 1, ret_shape)
-    else:
-        out[:] = core.tensordot_core(a, b, None, n, m, 1, ret_shape)
-        return out
+    out[:] = core.tensordot_core(a, b, None, n, m, 1, ret_shape)
+    return out
 
 
 def tensordot(a, b, axes=2):
@@ -156,7 +152,7 @@ def tensordot(a, b, axes=2):
     a_ndim = a.ndim
     b_ndim = b.ndim
     if a_ndim == 0 or b_ndim == 0:
-        if axes != 0 and axes != ((), ()):
+        if axes not in [0, ((), ())]:
             raise ValueError('An input is zero-dim while axes has dimensions')
         return cupy.multiply(a, b)
 

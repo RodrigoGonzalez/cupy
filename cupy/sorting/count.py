@@ -15,10 +15,7 @@ def count_nonzero(a, axis=None):
             in the array is returned.
     """
 
-    if axis is None:
-        return int(_count_nonzero(a))
-    else:
-        return _count_nonzero(a, axis=axis)
+    return int(_count_nonzero(a)) if axis is None else _count_nonzero(a, axis=axis)
 
 
 _count_nonzero = core.create_reduction_func(

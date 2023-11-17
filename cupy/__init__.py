@@ -12,10 +12,7 @@ except ImportError:
     # When a user cannot import core, it represents that CuPy is not correctly
     # built.
     exc_info = sys.exc_info()
-    msg = ('CuPy is not correctly installed. Please check your environment, '
-           'uninstall CuPy and reinstall it with `pip install cupy '
-           '--no-cache-dir -vvvv`.\n\n'
-           'original error: {}'.format(exc_info[1]))
+    msg = f'CuPy is not correctly installed. Please check your environment, uninstall CuPy and reinstall it with `pip install cupy --no-cache-dir -vvvv`.\n\noriginal error: {exc_info[1]}'
 
     six.reraise(ImportError, ImportError(msg), exc_info[2])
 
@@ -440,10 +437,7 @@ def asnumpy(a, stream=None):
         numpy.ndarray: Converted array on the host memory.
 
     """
-    if isinstance(a, ndarray):
-        return a.get(stream=stream)
-    else:
-        return numpy.asarray(a)
+    return a.get(stream=stream) if isinstance(a, ndarray) else numpy.asarray(a)
 
 
 _cupy = sys.modules[__name__]
@@ -472,10 +466,7 @@ def get_array_module(*args):
        ...     return xp.maximum(0, x) + xp.log1p(xp.exp(-abs(x)))
 
     """
-    for arg in args:
-        if isinstance(arg, ndarray):
-            return _cupy
-    return numpy
+    return next((_cupy for arg in args if isinstance(arg, ndarray)), numpy)
 
 
 fuse = fusion.fuse

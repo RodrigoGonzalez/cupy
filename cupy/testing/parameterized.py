@@ -8,7 +8,7 @@ def _gen_case(base, module, i, param):
 
     def __str__(self):
         name = base.__str__(self)
-        return '%s  parameter: %s' % (name, param)
+        return f'{name}  parameter: {param}'
 
     mb = dict(param)
 

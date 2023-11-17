@@ -92,7 +92,7 @@ def draw(X, n_clusters, centers, pred, output):
         centers = centers.get()
     plt.scatter(centers[:, 0], centers[:, 1], s=120, marker='s',
                 facecolors='y', edgecolors='k')
-    plt.savefig(output + '.png')
+    plt.savefig(f'{output}.png')
 
 
 def run(gpuid, n_clusters, max_iter, use_custom_kernel, output):
@@ -101,14 +101,14 @@ def run(gpuid, n_clusters, max_iter, use_custom_kernel, output):
     repeat = 1
 
     with timer(' CPU '):
-        for i in range(repeat):
+        for _ in range(repeat):
             centers, pred = fit(X_train, n_clusters, max_iter,
                                 use_custom_kernel)
 
     with cupy.cuda.Device(gpuid):
         X_train = cupy.asarray(X_train)
         with timer(' GPU '):
-            for i in range(repeat):
+            for _ in range(repeat):
                 centers, pred = fit(X_train, n_clusters, max_iter,
                                     use_custom_kernel)
         if output is not None:

@@ -107,10 +107,7 @@ class TestNdarrayTake(unittest.TestCase):
     @testing.numpy_cupy_array_equal()
     def test_take(self, xp, dtype):
         a = testing.shaped_arange(self.shape, xp, dtype)
-        if self.axis is None:
-            m = a.size
-        else:
-            m = a.shape[self.axis]
+        m = a.size if self.axis is None else a.shape[self.axis]
         i = testing.shaped_arange(self.indices_shape, xp, numpy.int32) % m
         return wrap_take(a, i, self.axis)
 

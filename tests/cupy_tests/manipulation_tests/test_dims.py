@@ -71,8 +71,7 @@ class TestDims(unittest.TestCase):
     def test_broadcast_to(self, xp, dtype):
         # Note that broadcast_to is only supported on numpy>=1.10
         a = testing.shaped_arange((3, 1, 4), xp, dtype)
-        b = xp.broadcast_to(a, (2, 3, 3, 4))
-        return b
+        return xp.broadcast_to(a, (2, 3, 3, 4))
 
     @testing.with_requires('numpy>=1.10')
     @testing.for_all_dtypes()

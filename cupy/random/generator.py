@@ -114,8 +114,9 @@ class RandomState(object):
         """
         dtype = kwarg.pop('dtype', float)
         if kwarg:
-            raise TypeError('rand() got unexpected keyword arguments %s'
-                            % ', '.join(kwarg.keys()))
+            raise TypeError(
+                f"rand() got unexpected keyword arguments {', '.join(kwarg.keys())}"
+            )
         return self.random_sample(size=size, dtype=dtype)
 
     def randn(self, *size, **kwarg):
@@ -128,8 +129,9 @@ class RandomState(object):
         """
         dtype = kwarg.pop('dtype', float)
         if kwarg:
-            raise TypeError('randn() got unexpected keyword arguments %s'
-                            % ', '.join(kwarg.keys()))
+            raise TypeError(
+                f"randn() got unexpected keyword arguments {', '.join(kwarg.keys())}"
+            )
         return self.normal(size=size, dtype=dtype)
 
     _1m_kernel = core.ElementwiseKernel(
@@ -255,10 +257,9 @@ class RandomState(object):
             a = cupy.array(a, copy=False)
             if a.ndim != 1:
                 raise ValueError('a must be 1-dimensional or an integer')
-            else:
-                a_size = len(a)
-                if a_size == 0:
-                    raise ValueError('a must be non-empty')
+            a_size = len(a)
+            if a_size == 0:
+                raise ValueError('a must be non-empty')
 
         if p is not None:
             p = cupy.array(p)
@@ -295,10 +296,7 @@ class RandomState(object):
         if isinstance(a, six.integer_types):
             return index
 
-        if index.ndim == 0:
-            return cupy.array(a[index], dtype=a.dtype)
-
-        return a[index]
+        return cupy.array(a[index], dtype=a.dtype) if index.ndim == 0 else a[index]
 
 
 def seed(seed=None):

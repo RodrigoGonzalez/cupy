@@ -32,7 +32,8 @@ class TestArrayGet(unittest.TestCase):
     @testing.for_all_dtypes()
     def test_non_contiguous_array(self, dtype):
         def non_contiguous_array(xp):
-            return testing.shaped_arange((3,), xp=xp, dtype=dtype)[0::2]
+            return testing.shaped_arange((3,), xp=xp, dtype=dtype)[::2]
+
         self.check_get(non_contiguous_array, None)
 
     @testing.for_all_dtypes()
@@ -44,7 +45,8 @@ class TestArrayGet(unittest.TestCase):
     @testing.for_all_dtypes()
     def test_non_contiguous_array_stream(self, dtype):
         def non_contiguous_array(xp):
-            return testing.shaped_arange((3,), xp=xp, dtype=dtype)[0::2]
+            return testing.shaped_arange((3,), xp=xp, dtype=dtype)[::2]
+
         self.check_get(non_contiguous_array, self.stream)
 
     @testing.multi_gpu(2)

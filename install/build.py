@@ -39,8 +39,9 @@ def get_cuda_path():
     if len(cuda_path) > 0 and cuda_path != cuda_path_default:
         utils.print_warning(
             'nvcc path != CUDA_PATH',
-            'nvcc path: %s' % cuda_path_default,
-            'CUDA_PATH: %s' % cuda_path)
+            f'nvcc path: {cuda_path_default}',
+            f'CUDA_PATH: {cuda_path}',
+        )
 
     if os.path.exists(cuda_path):
         _cuda_path = cuda_path
@@ -59,16 +60,9 @@ def get_nvcc_path():
     if cuda_path is None:
         return None
 
-    if sys.platform == 'win32':
-        nvcc_bin = 'bin/nvcc.exe'
-    else:
-        nvcc_bin = 'bin/nvcc'
-
+    nvcc_bin = 'bin/nvcc.exe' if sys.platform == 'win32' else 'bin/nvcc'
     nvcc_path = os.path.join(cuda_path, nvcc_bin)
-    if os.path.exists(nvcc_path):
-        return nvcc_path
-    else:
-        return None
+    return nvcc_path if os.path.exists(nvcc_path) else None
 
 
 def get_compiler_setting():
@@ -81,11 +75,19 @@ def get_compiler_setting():
     if cuda_path:
         include_dirs.append(os.path.join(cuda_path, 'include'))
         if sys.platform == 'win32':
-            library_dirs.append(os.path.join(cuda_path, 'bin'))
-            library_dirs.append(os.path.join(cuda_path, 'lib', 'x64'))
+            library_dirs.extend(
+                (
+                    os.path.join(cuda_path, 'bin'),
+                    os.path.join(cuda_path, 'lib', 'x64'),
+                )
+            )
         else:
-            library_dirs.append(os.path.join(cuda_path, 'lib64'))
-            library_dirs.append(os.path.join(cuda_path, 'lib'))
+            library_dirs.extend(
+                (
+                    os.path.join(cuda_path, 'lib64'),
+                    os.path.join(cuda_path, 'lib'),
+                )
+            )
     if sys.platform == 'darwin':
         library_dirs.append('/usr/local/cuda/lib')
 
@@ -209,10 +211,7 @@ def check_cusolver_version(compiler, settings):
 
     cuda_version = int(out)
 
-    if cuda_version < minimum_cusolver_cuda_version:
-        return False
-
-    return True
+    return cuda_version >= minimum_cusolver_cuda_version
 
 
 def build_shlib(compiler, source, libraries=(),
@@ -268,9 +267,7 @@ def build_and_run(compiler, source, libraries=(),
             raise Exception(msg)
 
         try:
-            out = subprocess.check_output(os.path.join(temp_dir, 'a'))
-            return out
-
+            return subprocess.check_output(os.path.join(temp_dir, 'a'))
         except Exception as e:
             msg = 'Cannot execute a stub file.\nOriginal error: {0}'.format(e)
             raise Exception(msg)

@@ -56,7 +56,7 @@ class TestCheckCupyNumpyError(unittest.TestCase):
         numpy_error = ValueError()
         numpy_tb = 'yyyy'
         # Use re.S mode to ignore new line characters
-        pattern = re.compile(cupy_tb + '.*' + numpy_tb, re.S)
+        pattern = re.compile(f'{cupy_tb}.*{numpy_tb}', re.S)
         with six.assertRaisesRegex(self, AssertionError, pattern):
             helper._check_cupy_numpy_error(self, cupy_error, cupy_tb,
                                            numpy_error, numpy_tb)
@@ -77,7 +77,7 @@ class TestCheckCupyNumpyError(unittest.TestCase):
         numpy_error = Exception()
         numpy_tb = 'yyyy'
         # Use re.S mode to ignore new line characters
-        pattern = re.compile(cupy_tb + '.*' + numpy_tb, re.S)
+        pattern = re.compile(f'{cupy_tb}.*{numpy_tb}', re.S)
         with six.assertRaisesRegex(self, AssertionError, pattern):
             helper._check_cupy_numpy_error(
                 self, cupy_error, cupy_tb,

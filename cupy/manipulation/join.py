@@ -82,9 +82,7 @@ def hstack(tup):
 
     """
     arrs = [cupy.atleast_1d(a) for a in tup]
-    axis = 1
-    if arrs[0].ndim == 1:
-        axis = 0
+    axis = 0 if arrs[0].ndim == 1 else 1
     return concatenate(arrs, axis)
 
 
@@ -128,5 +126,5 @@ def _get_positive_axis(ndim, axis):
     if a < 0:
         a += ndim
     if a < 0 or a >= ndim:
-        raise IndexError('axis {} out of bounds [0, {})'.format(axis, ndim))
+        raise IndexError(f'axis {axis} out of bounds [0, {ndim})')
     return a

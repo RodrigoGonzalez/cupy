@@ -15,7 +15,6 @@ class MockMemory(pinned_memory.PinnedMemory):
 
     def __del__(self):
         self.ptr = 0
-        pass
 
 
 def mock_alloc(size):
@@ -48,7 +47,7 @@ class TestMemoryPointer(unittest.TestCase):
 
         memptr += 4
         self.assertIsInstance(memptr, pinned_memory.PinnedMemoryPointer)
-        self.assertEqual(pval + 4, int(memptr))
+        self.assertEqual(pval + 4, memptr)
 
     def test_sub(self):
         pval = MockMemory.cur_ptr
@@ -60,7 +59,7 @@ class TestMemoryPointer(unittest.TestCase):
 
         memptr -= 4
         self.assertIsInstance(memptr, pinned_memory.PinnedMemoryPointer)
-        self.assertEqual(pval, int(memptr))
+        self.assertEqual(pval, memptr)
 
 
 # -----------------------------------------------------------------------------

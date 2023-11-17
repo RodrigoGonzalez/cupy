@@ -17,10 +17,7 @@ class TestArrayElementwiseOp(unittest.TestCase):
     @testing.numpy_cupy_allclose(accept_error=TypeError)
     def check_array_scalar_op(self, op, xp, x_type, y_type, swap=False):
         a = xp.array([[1, 2, 3], [4, 5, 6]], x_type)
-        if swap:
-            return op(y_type(3), a)
-        else:
-            return op(a, y_type(3))
+        return op(y_type(3), a) if swap else op(a, y_type(3))
 
     def test_add_scalar(self):
         self.check_array_scalar_op(operator.add)
@@ -480,10 +477,7 @@ class TestArrayIntElementwiseOp(unittest.TestCase):
     @testing.numpy_cupy_allclose(accept_error=TypeError)
     def check_array_scalar_op(self, op, xp, x_type, y_type, swap=False):
         a = xp.array([[0, 1, 2], [1, 0, 2]], dtype=x_type)
-        if swap:
-            return op(y_type(2), a)
-        else:
-            return op(a, y_type(2))
+        return op(y_type(2), a) if swap else op(a, y_type(2))
 
     def test_lshift_scalar(self):
         self.check_array_scalar_op(operator.lshift)
@@ -527,10 +521,7 @@ class TestArrayIntElementwiseOp(unittest.TestCase):
     @testing.numpy_cupy_allclose(accept_error=TypeError)
     def check_array_scalarzero_op(self, op, xp, x_type, y_type, swap=False):
         a = xp.array([[0, 1, 2], [1, 0, 2]], dtype=x_type)
-        if swap:
-            return op(y_type(0), a)
-        else:
-            return op(a, y_type(0))
+        return op(y_type(0), a) if swap else op(a, y_type(0))
 
     def test_lshift_scalarzero(self):
         self.check_array_scalarzero_op(operator.lshift)

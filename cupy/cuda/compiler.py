@@ -26,7 +26,7 @@ def _get_nvcc_version():
 
 def _get_arch():
     cc = device.Device().compute_capability
-    return 'sm_%s' % cc
+    return f'sm_{cc}'
 
 
 class TemporaryDirectory(object):
@@ -68,8 +68,8 @@ def nvcc(source, options=(), arch=None):
 
     with TemporaryDirectory() as root_dir:
         path = os.path.join(root_dir, 'kern')
-        cu_path = '%s.cu' % path
-        cubin_path = '%s.cubin' % path
+        cu_path = f'{path}.cu'
+        cubin_path = f'{path}.cubin'
 
         with open(cu_path, 'w') as cu_file:
             cu_file.write(source)
@@ -85,7 +85,7 @@ def preprocess(source, options=()):
     cmd = ['nvcc', '--preprocess'] + list(options)
     with TemporaryDirectory() as root_dir:
         path = os.path.join(root_dir, 'kern')
-        cu_path = '%s.cu' % path
+        cu_path = f'{path}.cu'
 
         with open(cu_path, 'w') as cu_file:
             cu_file.write(source)
@@ -115,25 +115,25 @@ def compile_with_cache(source, options=(), arch=None, cache_dir=None):
     if arch is None:
         arch = _get_arch()
 
-    if 'win32' == sys.platform:
+    if sys.platform == 'win32':
         options += ('-Xcompiler', '/wd 4819')
-        if sys.maxsize == 9223372036854775807:
-            options += '-m64',
-        elif sys.maxsize == 2147483647:
+        if sys.maxsize == 2147483647:
             options += '-m32',
 
+        elif sys.maxsize == 9223372036854775807:
+            options += '-m64',
     env = (arch, options, _get_nvcc_version())
     if '#include' in source:
-        pp_src = '%s %s' % (env, preprocess(source, options))
+        pp_src = f'{env} {preprocess(source, options)}'
     else:
         base = _empty_file_preprocess_cache.get(env, None)
         if base is None:
             base = _empty_file_preprocess_cache[env] = preprocess('', options)
-        pp_src = '%s %s %s' % (env, base, source)
+        pp_src = f'{env} {base} {source}'
 
     if isinstance(pp_src, six.text_type):
         pp_src = pp_src.encode('utf-8')
-    name = '%s_2.cubin' % hashlib.md5(pp_src).hexdigest()
+    name = f'{hashlib.md5(pp_src).hexdigest()}_2.cubin'
 
     if not os.path.isdir(cache_dir):
         try:

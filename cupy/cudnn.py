@@ -61,7 +61,7 @@ def get_data_type(dtype):
     elif dtype.type == numpy.float16:
         return cudnn.CUDNN_DATA_HALF
     else:
-        raise TypeError('Dtype {} is not supported in cuDNN'.format(dtype))
+        raise TypeError(f'Dtype {dtype} is not supported in cuDNN')
 
 
 def _to_ctypes_array(tup, dtype=numpy.intc):
@@ -91,9 +91,9 @@ def create_uninitialized_tensor_descriptor():
     Create a cudnnCreateTensorDescriptor_t that is not yet initialized.
     This is used by the batch normalization functions.
     """
-    desc = Descriptor(cudnn.createTensorDescriptor(),
-                      cudnn.destroyTensorDescriptor)
-    return desc
+    return Descriptor(
+        cudnn.createTensorDescriptor(), cudnn.destroyTensorDescriptor
+    )
 
 
 def create_tensor_nd_descriptor(arr):
@@ -133,13 +133,12 @@ def create_filter_descriptor(arr, format=cudnn.CUDNN_TENSOR_NCHW):
             c_shape = _to_ctypes_array(arr.shape)
             cudnn.setFilterNdDescriptor_v4(desc.value, data_type, format,
                                            arr.ndim, c_shape.data)
+    elif arr.ndim == 4:
+        cudnn.setFilter4dDescriptor_v3(desc.value, data_type, *arr.shape)
     else:
-        if arr.ndim == 4:
-            cudnn.setFilter4dDescriptor_v3(desc.value, data_type, *arr.shape)
-        else:
-            c_shape = _to_ctypes_array(arr.shape)
-            cudnn.setFilterNdDescriptor_v3(desc.value, data_type, arr.ndim,
-                                           c_shape.data)
+        c_shape = _to_ctypes_array(arr.shape)
+        cudnn.setFilterNdDescriptor_v3(desc.value, data_type, arr.ndim,
+                                       c_shape.data)
 
     return desc
 
@@ -313,8 +312,7 @@ def get_rnn_lin_layer_matrix_params(
     offset = (ptr - w.data.ptr) // 4
     _, _, _, dim = cudnn.getFilterNdDescriptor(mat_desc.value, 3)
     size = internal.prod(dim)
-    mat = w[offset: offset + size]
-    return mat
+    return w[offset: offset + size]
 
 
 def get_rnn_lin_layer_bias_params(
@@ -328,8 +326,7 @@ def get_rnn_lin_layer_bias_params(
     offset = (ptr - w.data.ptr) // 4
     _, _, _, dim = cudnn.getFilterNdDescriptor(bias_desc.value, 3)
     size = internal.prod(dim)
-    bias = w[offset: offset + size]
-    return bias
+    return w[offset: offset + size]
 
 
 def create_dropout_states(handle):

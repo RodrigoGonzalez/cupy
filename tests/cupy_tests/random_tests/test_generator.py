@@ -275,10 +275,7 @@ class TestChoice(unittest.TestCase):
             expected_shape = (self.size,)
         else:
             expected_shape = self.size
-        if isinstance(self.a, numpy.ndarray):
-            expected_dtype = 'float'
-        else:
-            expected_dtype = 'int'
+        expected_dtype = 'float' if isinstance(self.a, numpy.ndarray) else 'int'
         self.assertEqual(v.dtype, expected_dtype)
         self.assertEqual(v.shape, expected_shape)
 
@@ -340,8 +337,7 @@ class TestChoiceMultinomial(unittest.TestCase):
         p = xp.array([0.5, 0.25, 0.125, 0.125], dtype)
         trial = 10000
         x = xp.random.choice(len(p), trial, p=p)
-        y = xp.bincount(x).astype('f') / trial
-        return y
+        return xp.bincount(x).astype('f') / trial
 
 
 @testing.parameterize(

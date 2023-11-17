@@ -93,10 +93,7 @@ def linspace(start, stop, num=50, endpoint=True, retstep=False, dtype=None):
         if endpoint:
             ret[-1] = stop
 
-    if retstep:
-        return ret, step
-    else:
-        return ret
+    return (ret, step) if retstep else ret
 
 
 def logspace(start, stop, num=50, endpoint=True, base=10.0, dtype=None):
@@ -159,8 +156,8 @@ def meshgrid(*xi, **kwargs):
     copy = bool(kwargs.pop('copy', True))
     if kwargs:
         raise TypeError(
-            'meshgrid() got an unexpected keyword argument \'{}\''.format(
-                list(kwargs)[0]))
+            f"meshgrid() got an unexpected keyword argument \'{list(kwargs)[0]}\'"
+        )
     if indexing not in ['xy', 'ij']:
         raise ValueError('Valid values for `indexing` are \'xy\' and \'ij\'.')
 

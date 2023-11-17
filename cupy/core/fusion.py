@@ -29,14 +29,15 @@ class FusionOp(object):
         self.num = num
 
     def __repr__(self):
-        return "<FusionOp, name={}, types=[{}]>".format(
-            self.name, ', '.join(_.name for _ in self.types))
+        return f"<FusionOp, name={self.name}, types=[{', '.join(_.name for _ in self.types)}]>"
 
     def build_kernel_name(self):
-        return self.name + '_' + '_'.join([
-            'IN_' + '_'.join(build_kernel_name(_) for _ in self.in_vars),
-            'OUT_' + '_'.join(build_kernel_name(_) for _ in self.out_vars),
-        ])
+        return f'{self.name}_' + '_'.join(
+            [
+                'IN_' + '_'.join(build_kernel_name(_) for _ in self.in_vars),
+                'OUT_' + '_'.join(build_kernel_name(_) for _ in self.out_vars),
+            ]
+        )
 
 
 class _FusionVar(object):
@@ -47,11 +48,10 @@ class _FusionVar(object):
         self.const = const
 
     def __repr__(self):
-        return "<_FusionVar, num={}, ty={}, const={}>".format(
-            self.num, self.ty, self.const)
+        return f"<_FusionVar, num={self.num}, ty={self.ty}, const={self.const}>"
 
     def build_kernel_name(self):
-        return self.ty.name + '_at' + str(self.num)
+        return f'{self.ty.name}_at{str(self.num)}'
 
 
 class _FusionMem(object):
@@ -61,9 +61,7 @@ class _FusionMem(object):
         self.var_list = var_list[:]
 
     def __repr__(self):
-        return "<_FusionMem, op_list={}, var_list={}>".format(
-            self.op_list,
-            self.var_list)
+        return f"<_FusionMem, op_list={self.op_list}, var_list={self.var_list}>"
 
     def get_fresh(self, ty, **kwargs):
         n = len(self.var_list)
@@ -87,7 +85,7 @@ class _FusionRef(object):
         self._mem = mem
 
     def __repr__(self):
-        return "<_FusionRef, dtype=%s>" % self.dtype
+        return f"<_FusionRef, dtype={self.dtype}>"
 
     def build_kernel_name(self):
         return build_kernel_name(self._var)
@@ -158,8 +156,8 @@ class _FusionRef(object):
     def __rmod__(self, other):
         return remainder(other, self)
 
-    def __pow__(x, y):
-        return power(x, y)
+    def __pow__(self, y):
+        return power(self, y)
 
     def __ipow__(self, other):
         return power(self, other, self)
@@ -277,7 +275,7 @@ def _normalize_arg(arg, mem):
     is_ndarray = hasattr(arg, 'dtype') and arg.dtype in _dtype_list
     if is_scalar or is_ndarray:
         return mem.get_fresh(numpy.dtype(arg_type), const=arg)
-    raise Exception('Unsupported type %s' % arg_type)
+    raise Exception(f'Unsupported type {arg_type}')
 
 
 def _convert(f):
@@ -285,7 +283,7 @@ def _convert(f):
         return _convert_from_ufunc(f)
     if type(f) is core.ElementwiseKernel:
         return _convert_from_elementwise(f)
-    raise Exception("Can't convert from %s to FusionOp" % type(f))
+    raise Exception(f"Can't convert from {type(f)} to FusionOp")
 
 
 def _should_use_min_scalar(in_args):
@@ -333,7 +331,7 @@ def _convert_from_ufunc(ufunc):
         if 'out' in kwargs:
             var_list.append(_normalize_arg.pop('out'))
         if kwargs:
-            raise TypeError('Wrong arguments %s' % kwargs)
+            raise TypeError(f'Wrong arguments {kwargs}')
         assert nin <= len(var_list) and len(var_list) <= nin + nout
         in_vars = var_list[:nin]
         out_vars = var_list[nin:]
@@ -355,9 +353,9 @@ def _convert_from_ufunc(ufunc):
                         v = out_vars[i]
                         ret.append(_FusionRef(v, mem))
                     else:
-                        raise TypeError("Cannot cast from %s to %s"
-                                        % (ty_outs[i], out_vars[i].ty)
-                                        + " with casting rule 'same_kind'")
+                        raise TypeError(
+                            f"Cannot cast from {ty_outs[i]} to {out_vars[i].ty} with casting rule 'same_kind'"
+                        )
                 mem.set_op(ufunc.name, op, param_names, nin, nout,
                            in_vars, out_vars, ty_ins + ty_outs)
                 return ret[0] if len(ret) == 1 else tuple(ret)
@@ -365,6 +363,7 @@ def _convert_from_ufunc(ufunc):
             ufunc.name,
             [_.ty for _ in in_vars],
             [_.ty for _ in out_vars]))
+
     return res
 
 
@@ -404,7 +403,7 @@ def _get_operation_code(op):
                    for i, v in enumerate(op.in_vars))
     params = ['v%d_%d' % (op.num, i)
               for i in six.moves.range(op.nin + op.nout)]
-    code += op.name + '(' + ', '.join(params) + ');\n'
+    code += f'{op.name}(' + ', '.join(params) + ');\n'
     code += ''.join('v%d = v%d_%d;\n' %
                     (v.num, op.num, i + op.nin)
                     for i, v in enumerate(op.out_vars))
@@ -412,13 +411,17 @@ def _get_operation_code(op):
 
 
 def _get_submodule_code(op):
-    parameters = ', '.join('%s &%s' % (_dtype_to_ctype[t], name)
-                           for i, (name, t)
-                           in enumerate(zip(op.param_names, op.types)))
-    typedecl = ''.join(('typedef %s in%d_type;\n' % (_dtype_to_ctype[t], i))
-                       for i, t in enumerate(op.types[:op.nin]))
-    typedecl += ''.join(('typedef %s out%d_type;\n' % (_dtype_to_ctype[t], i))
-                        for i, t in enumerate(op.types[op.nin:]))
+    typedecl = ''.join(
+        ('typedef %s in%d_type;\n' % (_dtype_to_ctype[t], i))
+        for i, t in enumerate(op.types[: op.nin])
+    ) + ''.join(
+        ('typedef %s out%d_type;\n' % (_dtype_to_ctype[t], i))
+        for i, t in enumerate(op.types[op.nin :])
+    )
+    parameters = ', '.join(
+        f'{_dtype_to_ctype[t]} &{name}'
+        for name, t in zip(op.param_names, op.types)
+    )
     module_code = string.Template('''
     __device__ void ${name}(${parameters}) {
       ${typedecl}
@@ -433,58 +436,63 @@ def _get_submodule_code(op):
 
 
 def _get_pre_code(in_vars, out_vars, operation):
-    in_params = ', '.join('%s v%s' % (_dtype_to_ctype[v.ty], v.num)
-                          for v in in_vars)
+    in_params = ', '.join(f'{_dtype_to_ctype[v.ty]} v{v.num}' for v in in_vars)
     out_params = ''.join('%s v%s;\n' % (_dtype_to_ctype[v.ty], v.num)
                          for v in out_vars)
-    module_code = string.Template('''
+    return string.Template(
+        '''
     __device__ ${return_type} _pre_map(${in_params}) {
       ${out_params}
       ${operation};
       return ${return_var};
     }
-    ''').substitute(
+    '''
+    ).substitute(
         return_type=_dtype_to_ctype[out_vars[0].ty],
         in_params=in_params,
         out_params=out_params,
         operation=operation,
-        return_var='v%d' % out_vars[0].num)
-    return module_code
+        return_var='v%d' % out_vars[0].num,
+    )
 
 
 def _get_reduce_op(ops, dtype):
     for i in ops._ops:
         if numpy.can_cast(dtype.type, i[0][0]):
             return i
-    raise TypeError("Type is mismatched. %s(...), %s" % (ops.name, dtype.type))
+    raise TypeError(f"Type is mismatched. {ops.name}(...), {dtype.type}")
 
 
 def _get_post_code(post_vars, operation, post_out):
-    module_code = string.Template('''
+    return string.Template(
+        '''
     __device__ ${return_type} _post_map(${arg_type} v0) {
       ${operation};
       return v${return_var};
     }
-    ''').substitute(
+    '''
+    ).substitute(
         arg_type=_dtype_to_ctype[post_vars[0].ty],
         return_type=_dtype_to_ctype[post_vars[post_out.num].ty],
         operation=operation,
-        return_var=post_out.num)
-    return module_code
+        return_var=post_out.num,
+    )
 
 
 def _get_fix_code(data_type, fixed_type, operation):
-    module_code = string.Template('''
+    return string.Template(
+        '''
     __device__ ${fixed_type} _post_fix(${data_type} a) {
       ${fixed_type} out0;
       ${operation};
       return out0;
     }
-    ''').substitute(
+    '''
+    ).substitute(
         data_type=data_type,
         fixed_type=_dtype_to_ctype[fixed_type],
-        operation=operation)
-    return module_code
+        operation=operation,
+    )
 
 
 def _get_fusion(func, nin, reduce, post_map, identity, input_types, name=None):
@@ -502,8 +510,9 @@ def _get_fusion(func, nin, reduce, post_map, identity, input_types, name=None):
 
     in_params = ', '.join(_get_params(in_vars))
     out_params = ', '.join(_get_params(out_vars))
-    operation = ''.join(_get_declaration_from_var(_) for _ in tmpvars)
-    operation += ''.join(_get_declaration_from_op(_) for _ in op_list)
+    operation = ''.join(
+        _get_declaration_from_var(_) for _ in tmpvars
+    ) + ''.join(_get_declaration_from_op(_) for _ in op_list)
     operation += '\n'.join(_get_operation_code(_) for _ in op_list)
 
     if name is None:
@@ -543,9 +552,9 @@ def _get_fusion(func, nin, reduce, post_map, identity, input_types, name=None):
             raise Exception("Can't reduce a tuple")
         post_vars = mem.var_list
         post_ops = mem.op_list
-        post_code = ''.join(_get_declaration_from_var(_)
-                            for _ in post_vars[1:])
-        post_code += ''.join(_get_declaration_from_op(_) for _ in post_ops)
+        post_code = ''.join(
+            _get_declaration_from_var(_) for _ in post_vars[1:]
+        ) + ''.join(_get_declaration_from_op(_) for _ in post_ops)
         post_code += '\n'.join(_get_operation_code(_) for _ in post_ops)
         post_code = _get_post_code(post_vars, post_code, post_out)
         post_code += _get_fix_code(post_type, reduce_type, reduce_op[2][2])
@@ -554,9 +563,9 @@ def _get_fusion(func, nin, reduce, post_map, identity, input_types, name=None):
         submodule_code = ''.join(_get_submodule_code(v)
                                  for v in submodules.values())
         submodule_code += reduce._raw._preamble + pre_code + post_code
-        operation_args = ['v' + str(i) for i in six.moves.range(nin)]
+        operation_args = [f'v{str(i)}' for i in six.moves.range(nin)]
         operation = '_pre_map(' + ', '.join(operation_args) + ')'
-        out_params = '%s res' % post_out.ty
+        out_params = f'{post_out.ty} res'
         return core.ReductionKernel(in_params, out_params, operation,
                                     reduce_code,
                                     'res = _post_map(_post_fix(a))',
@@ -589,11 +598,11 @@ class Fusion(object):
         self._memo = {}
 
     def __repr__(self):
-        return "<Fusion '%s'>" % self.name
+        return f"<Fusion '{self.name}'>"
 
     def __call__(self, *args, **kwargs):
         axis = kwargs['axis'] if 'axis' in kwargs else None
-        if len(args) == 0:
+        if not args:
             raise Exception('number of arguments must be more than 0')
         if builtins.any(
                 not isinstance(_, (core.ndarray, numpy.ndarray, numpy.generic))
@@ -604,22 +613,17 @@ class Fusion(object):
 
         def is_cupy_data(a):
             return isinstance(a, (core.ndarray, numpy.generic))
+
         if builtins.all(is_cupy_data(_) for _ in args):
             types = [_.dtype for _ in args]
             key = tuple(types)
             if key not in self._memo:
-                if self.input_num is not None:
-                    nin = self.input_num
-                else:
-                    nin = len(args)
+                nin = self.input_num if self.input_num is not None else len(args)
                 f = _get_fusion(self.func, nin, self.reduce,
                                 self.post_map, self.identity, types)
                 self._memo[key] = f
             f = self._memo[key]
-            if self.reduce is None:
-                return f(*args)
-            else:
-                return f(*args, axis=axis)
+            return f(*args) if self.reduce is None else f(*args, axis=axis)
         else:
             if builtins.any(type(_) is core.ndarray for _ in args):
                 types = '.'.join(repr(type(_)) for _ in args)
@@ -653,11 +657,7 @@ def fuse(input_num=None, reduce=None, post_map=lambda x: x):
 
 
 def build_kernel_name(entity):
-    if isinstance(entity, FusionOp):
-        return entity.build_kernel_name()
-    elif isinstance(entity, _FusionVar):
-        return entity.build_kernel_name()
-    elif isinstance(entity, _FusionRef):
+    if isinstance(entity, (FusionOp, _FusionVar, _FusionRef)):
         return entity.build_kernel_name()
     else:
         assert False, type(entity)

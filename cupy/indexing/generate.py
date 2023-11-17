@@ -50,12 +50,18 @@ class AxisConcatenator(object):
 
         for i, k in enumerate(key):
             scalar = False
-            if isinstance(k, slice):
-                raise NotImplementedError
-            elif isinstance(k, six.string_types):
-                if i != 0:
-                    raise ValueError(
-                        'special directives must be the first entry.')
+            if (
+                not isinstance(k, slice)
+                and isinstance(k, six.string_types)
+                and i != 0
+            ):
+                raise ValueError(
+                    'special directives must be the first entry.')
+            elif (
+                not isinstance(k, slice)
+                and isinstance(k, six.string_types)
+                or isinstance(k, slice)
+            ):
                 raise NotImplementedError
             elif type(k) in numpy.ScalarType:
                 newobj = from_data.array(k, ndmin=ndmin)

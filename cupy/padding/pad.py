@@ -33,7 +33,7 @@ def _normalize_shape(ndarray, shape, cast_to_int=True):
     if ndshape.ndim == 1:
         ndshape = numpy.tile(ndshape, (ndims, 1))
     if ndshape.shape != (ndims, 2):
-        message = 'Unable to create correctly shaped tuple from %s' % shape
+        message = f'Unable to create correctly shaped tuple from {shape}'
         raise ValueError(message)
     if cast_to_int:
         ndshape = numpy.rint(ndshape).astype(int)
@@ -46,7 +46,7 @@ def _validate_lengths(narray, number_elements):
         axis_shape = [1 if x is None else x for x in axis_shape]
         axis_shape = [1 if x >= 0 else -1 for x in axis_shape]
         if axis_shape[0] < 0 or axis_shape[1] < 0:
-            message = '%s cannot contain negative values.' % number_elements
+            message = f'{number_elements} cannot contain negative values.'
             raise ValueError(message)
     return shape
 
@@ -88,7 +88,7 @@ def pad(array, pad_width, mode, **keywords):
     .. seealso:: :func:`numpy.pad`
 
     """
-    if not numpy.asarray(pad_width).dtype.kind == 'i':
+    if numpy.asarray(pad_width).dtype.kind != 'i':
         raise TypeError('pad_width must be of integral type.')
     narray = cupy.array(array)
     pad_width = _validate_lengths(narray, pad_width)
@@ -102,8 +102,9 @@ def pad(array, pad_width, mode, **keywords):
         raise NotImplementedError
     for key in keywords:
         if key not in allowed_keywords[mode]:
-            raise ValueError('%s keyword not in allowed keywords %s' %
-                             (key, allowed_keywords[mode]))
+            raise ValueError(
+                f'{key} keyword not in allowed keywords {allowed_keywords[mode]}'
+            )
     for allowed_keyword in allowed_keywords[mode]:
         keywords.setdefault(allowed_keyword, keyword_defaults[allowed_keyword])
     for key in keywords:

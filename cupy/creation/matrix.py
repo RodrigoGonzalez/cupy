@@ -22,16 +22,14 @@ def diag(v, k=0):
     .. seealso:: :func:`numpy.diag`
 
     """
-    if isinstance(v, cupy.ndarray):
-        if v.ndim == 1:
-            size = v.size + abs(k)
-            ret = cupy.zeros((size, size), dtype=v.dtype)
-            ret.diagonal(k)[:] = v
-            return ret
-        else:
-            return v.diagonal(k)
-    else:
+    if not isinstance(v, cupy.ndarray):
         return cupy.array(numpy.diag(v, k))
+    if v.ndim != 1:
+        return v.diagonal(k)
+    size = v.size + abs(k)
+    ret = cupy.zeros((size, size), dtype=v.dtype)
+    ret.diagonal(k)[:] = v
+    return ret
 
 
 def diagflat(v, k=0):

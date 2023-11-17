@@ -17,7 +17,6 @@ class MockMemory(memory.Memory):
 
     def __del__(self):
         self.ptr = 0
-        pass
 
 
 def mock_alloc(size):
@@ -50,7 +49,7 @@ class TestMemoryPointer(unittest.TestCase):
 
         memptr += 4
         self.assertIsInstance(memptr, memory.MemoryPointer)
-        self.assertEqual(pval + 4, int(memptr))
+        self.assertEqual(pval + 4, memptr)
 
     def test_sub(self):
         pval = MockMemory.cur_ptr
@@ -62,7 +61,7 @@ class TestMemoryPointer(unittest.TestCase):
 
         memptr -= 4
         self.assertIsInstance(memptr, memory.MemoryPointer)
-        self.assertEqual(pval, int(memptr))
+        self.assertEqual(pval, memptr)
 
     def test_copy_to_and_from_host(self):
         a_gpu = memory.alloc(4)
@@ -89,7 +88,7 @@ class TestMemoryPointer(unittest.TestCase):
         a_gpu = memory.alloc(4)
         a_gpu.memset(1, 4)
         a_cpu = ctypes.c_ubyte()
-        for i in range(4):
+        for _ in range(4):
             a_gpu.copy_to_host(
                 ctypes.cast(ctypes.byref(a_cpu), ctypes.c_void_p), 1)
             self.assertEqual(a_cpu.value, 1)

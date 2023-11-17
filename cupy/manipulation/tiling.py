@@ -36,16 +36,13 @@ def tile(A, reps):
     ret_shape = []
     for dim_in, nrep in zip(c.shape, tup):
         if nrep == 1:
-            c_shape.append(dim_in)
             ret_shape.append(dim_in)
         elif dim_in == 1:
-            c_shape.append(dim_in)
             ret_shape.append(nrep)
         else:
             c_shape.append(1)
-            c_shape.append(dim_in)
-            ret_shape.append(nrep)
-            ret_shape.append(dim_in)
+            ret_shape.extend((nrep, dim_in))
+        c_shape.append(dim_in)
     ret = cupy.empty(ret_shape, dtype=c.dtype)
     if ret.size:
         ret[...] = c.reshape(c_shape)

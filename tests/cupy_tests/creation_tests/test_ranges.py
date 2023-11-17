@@ -119,7 +119,7 @@ class TestRanges(unittest.TestCase):
     def test_linspace_float_underflow(self, xp):
         # find minimum subnormal number
         x = sys.float_info.min
-        while x / 2 > 0:
+        while x > 0:
             x /= 2
         return xp.linspace(0., x, 10, dtype=float)
 

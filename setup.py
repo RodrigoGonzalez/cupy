@@ -7,8 +7,8 @@ import sys
 import cupy_setup_build
 
 
-if sys.version_info[:3] == (3, 5, 0):
-    if not int(os.getenv('CUPY_PYTHON_350_FORCE', '0')):
+if not int(os.getenv('CUPY_PYTHON_350_FORCE', '0')):
+    if sys.version_info[:3] == (3, 5, 0):
         msg = """
 CuPy does not work with Python 3.5.0.
 

@@ -22,8 +22,7 @@ class TestPadDefault(unittest.TestCase):
     @testing.numpy_cupy_array_equal()
     def test_pad_default(self, xp, dtype):
         array = xp.array(self.array, dtype=dtype)
-        a = xp.pad(array, self.pad_width, mode=self.mode)
-        return a
+        return xp.pad(array, self.pad_width, mode=self.mode)
 
 
 @testing.parameterize(
@@ -47,9 +46,12 @@ class TestPad(unittest.TestCase):
     @testing.numpy_cupy_array_equal()
     def test_pad(self, xp, dtype):
         array = xp.array(self.array, dtype=dtype)
-        a = xp.pad(array, self.pad_width, mode=self.mode,
-                   constant_values=self.constant_values)
-        return a
+        return xp.pad(
+            array,
+            self.pad_width,
+            mode=self.mode,
+            constant_values=self.constant_values,
+        )
 
 
 @testing.gpu
@@ -64,9 +66,9 @@ class TestPadNumpybug(unittest.TestCase):
         array = xp.arange(6, dtype=dtype).reshape([2, 3])
         pad_width = [[1, 2], [3, 4]]
         constant_values = [[1, 2], [3, 4]]
-        a = xp.pad(array, pad_width, mode='constant',
-                   constant_values=constant_values)
-        return a
+        return xp.pad(
+            array, pad_width, mode='constant', constant_values=constant_values
+        )
 
 
 @testing.parameterize(
@@ -84,9 +86,12 @@ class TestPadSpecial(unittest.TestCase):
 
     @testing.numpy_cupy_array_equal()
     def test_pad_special(self, xp):
-        a = xp.pad(self.array, self.pad_width, mode=self.mode,
-                   constant_values=self.constant_values)
-        return a
+        return xp.pad(
+            self.array,
+            self.pad_width,
+            mode=self.mode,
+            constant_values=self.constant_values,
+        )
 
 
 @testing.parameterize(
@@ -107,6 +112,9 @@ class TestPadFailure(unittest.TestCase):
 
     @testing.numpy_cupy_raises()
     def test_pad_failure(self, xp):
-        a = xp.pad(self.array, self.pad_width, mode=self.mode,
-                   constant_values=self.constant_values)
-        return a
+        return xp.pad(
+            self.array,
+            self.pad_width,
+            mode=self.mode,
+            constant_values=self.constant_values,
+        )

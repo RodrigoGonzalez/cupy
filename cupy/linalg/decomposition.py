@@ -32,7 +32,7 @@ def cholesky(a):
     _assert_nd_squareness(a)
 
     # Cast to float32 or float64
-    if a.dtype.char == 'f' or a.dtype.char == 'd':
+    if a.dtype.char in ['f', 'd']:
         dtype = a.dtype.char
     else:
         dtype = numpy.find_common_type((a.dtype.char, 'f'), ()).char
@@ -58,8 +58,8 @@ def cholesky(a):
     status = int(dev_info[0])
     if status > 0:
         raise linalg.LinAlgError(
-            'The leading minor of order {} '
-            'is not positive definite'.format(status))
+            f'The leading minor of order {status} is not positive definite'
+        )
     elif status < 0:
         raise linalg.LinAlgError(
             'Parameter error (maybe caused by a bug in cupy.linalg?)')
@@ -91,14 +91,13 @@ def qr(a, mode='reduced'):
     _assert_rank2(a)
 
     if mode not in ('reduced', 'complete', 'r', 'raw'):
-        if mode in ('f', 'full', 'e', 'economic'):
-            msg = 'The deprecated mode \'{}\' is not supported'.format(mode)
-            raise ValueError(msg)
-        else:
-            raise ValueError('Unrecognized mode \'{}\''.format(mode))
+        if mode not in ('f', 'full', 'e', 'economic'):
+            raise ValueError(f"Unrecognized mode \'{mode}\'")
 
+        msg = f"The deprecated mode \'{mode}\' is not supported"
+        raise ValueError(msg)
     # Cast to float32 or float64
-    if a.dtype.char == 'f' or a.dtype.char == 'd':
+    if a.dtype.char in ['f', 'd']:
         dtype = a.dtype.char
     else:
         dtype = numpy.find_common_type((a.dtype.char, 'f'), ()).char
@@ -195,7 +194,7 @@ def svd(a, full_matrices=True, compute_uv=True):
     _assert_rank2(a)
 
     # Cast to float32 or float64
-    if a.dtype.char == 'f' or a.dtype.char == 'd':
+    if a.dtype.char in ['f', 'd']:
         dtype = a.dtype.char
     else:
         dtype = numpy.find_common_type((a.dtype.char, 'f'), ()).char
@@ -257,10 +256,7 @@ def svd(a, full_matrices=True, compute_uv=True):
     # Note that the returned array may need to be transporsed
     # depending on the structure of an input
     if compute_uv:
-        if trans_flag:
-            return u.transpose(), s, vt.transpose()
-        else:
-            return vt, s, u
+        return (u.transpose(), s, vt.transpose()) if trans_flag else (vt, s, u)
     else:
         return s
 
@@ -276,8 +272,8 @@ def _assert_rank2(*arrays):
     for a in arrays:
         if a.ndim != 2:
             raise linalg.LinAlgError(
-                '{}-dimensional array given. Array must be '
-                'two-dimensional'.format(a.ndim))
+                f'{a.ndim}-dimensional array given. Array must be two-dimensional'
+            )
 
 
 def _assert_nd_squareness(*arrays):

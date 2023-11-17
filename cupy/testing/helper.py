@@ -422,15 +422,9 @@ _dtypes = _float_dtypes + _int_bool_dtypes
 
 def _make_all_dtypes(no_float16, no_bool):
     if no_float16:
-        if no_bool:
-            return _regular_float_dtypes + _int_dtypes
-        else:
-            return _regular_dtypes
+        return _regular_float_dtypes + _int_dtypes if no_bool else _regular_dtypes
     else:
-        if no_bool:
-            return _float_dtypes + _int_dtypes
-        else:
-            return _dtypes
+        return _float_dtypes + _int_dtypes if no_bool else _dtypes
 
 
 def for_all_dtypes(name='dtype', no_float16=False, no_bool=False):
@@ -698,10 +692,7 @@ def for_int_dtypes_combination(names=('dtype',), no_bool=False, full=None):
 
     .. seealso:: :func:`cupy.testing.for_dtypes_combination`
     """
-    if no_bool:
-        types = _int_dtypes
-    else:
-        types = _int_bool_dtypes
+    types = _int_dtypes if no_bool else _int_bool_dtypes
     return for_dtypes_combination(types, names, full)
 
 
@@ -769,7 +760,7 @@ def with_requires(*requirements):
     except pkg_resources.ResolutionError:
         skip = True
 
-    msg = 'requires: {}'.format(','.join(requirements))
+    msg = f"requires: {','.join(requirements)}"
     return unittest.skipIf(skip, msg)
 
 
